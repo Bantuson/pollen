@@ -101,12 +101,14 @@ func TestEndToEndScan(t *testing.T) {
 		records = append(records, r)
 	}
 
+	projSep := string(filepath.Separator) + "proj" + string(filepath.Separator)
+	dupSep := string(filepath.Separator) + "dup" + string(filepath.Separator)
 	var lockFromProj, lockFromDup, nmRec, pyRec bool
 	for _, r := range records {
 		switch {
-		case r.Ecosystem == "npm" && r.SourceType == "npm-lockfile" && strings.Contains(r.SourceFile, "/proj/"):
+		case r.Ecosystem == "npm" && r.SourceType == "npm-lockfile" && strings.Contains(r.SourceFile, projSep):
 			lockFromProj = true
-		case r.Ecosystem == "npm" && r.SourceType == "npm-lockfile" && strings.Contains(r.SourceFile, "/dup/"):
+		case r.Ecosystem == "npm" && r.SourceType == "npm-lockfile" && strings.Contains(r.SourceFile, dupSep):
 			lockFromDup = true
 		case r.Ecosystem == "npm" && r.SourceType == "npm-node_modules":
 			nmRec = true
