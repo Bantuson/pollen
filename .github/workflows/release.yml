@@ -1,36 +1,85 @@
-name: release
+# Release pipeline for Pollen (FORK-03 + SDEF-02)
+#
+# Triggered by pushing a vX.Y.Z tag. GoReleaser builds reproducible
+# multi-platform binaries with -trimpath -buildvcs=false, cosign v3 keylessly
+# signs checksums.txt (no long-lived signing key — OIDC identity auto-bound to
+# github.com/bantuson/pollen/.github/workflows/release.yml by GitHub Actions),
+# syft produces CycloneDX SBOMs per archive (recording the upstream commit for
+# SDEF-02 provenance), and slsa-github-generator@v2.1.0 produces an SLSA Level 3
+# provenance attestation.
+#
+# CRITICAL: slsa-github-generator MUST be pinned to full semver @v2.1.0.
+# Pinning to @v2 alone is insufficient for SLSA Level 3 trusted-builder
+# verification rules (beekeeper CLAUDE.md + CONTEXT.md locked decision).
+name: Release
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   goreleaser:
-    name: goreleaser
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+    permissions:
+      contents: write    # upload release artifacts
+      id-token: write    # cosign keyless OIDC signing
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          # GoReleaser needs full history for changelog generation.
-          fetch-depth: 0
-          persist-credentials: false
+          fetch-depth: 0 # GoReleaser needs full history + tags for changelog/version.
 
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
-          check-latest: true
+          go-version-file: go.mod # Pins the toolchain to go.mod for reproducibility.
 
-      # SHA-pinned to the v7 tag of goreleaser/goreleaser-action; rotate
-      # the SHA when bumping the major version intentionally.
-      - uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7.2.2
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Run GoReleaser
+        id: run-goreleaser
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
-          version: "v2.15.4"
+          version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate artifact hashes for SLSA provenance
+        id: hash
+        env:
+          ARTIFACTS: "${{ steps.run-goreleaser.outputs.artifacts }}"
+        run: |
+          set -euo pipefail
+          checksum_file=$(echo "$ARTIFACTS" | jq -r '.[] | select(.type=="Checksum") | .path')
+          if [ -z "$checksum_file" ] || [ ! -f "$checksum_file" ]; then
+            echo "::error::checksums.txt not found in GoReleaser artifacts"
+            exit 1
+          fi
+          hashes=$(cat "$checksum_file" | base64 -w0)
+          echo "hashes=$hashes" >> "$GITHUB_OUTPUT"
+
+  provenance:
+    # SDEF-02: SLSA Level 3 provenance attestation via the slsa-github-generator
+    # reusable workflow. The version MUST be pinned to a full semver per CLAUDE.md
+    # and the SLSA framework's trusted-builder verification rules — never @v2.
+    needs: [goreleaser]
+    permissions:
+      actions: read      # detect GitHub Actions environment for provenance
+      id-token: write    # Sigstore OIDC signing for the attestation
+      contents: write    # upload the .intoto.jsonl attestation to the release
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
+      upload-assets: true
