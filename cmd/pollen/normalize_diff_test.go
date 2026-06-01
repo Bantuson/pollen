@@ -51,9 +51,18 @@ func TestNormalize(t *testing.T) {
 			t.Error("normalize() removed the 'endpoint' key entirely; expected partial endpoint to remain")
 		}
 
+		// scanner_name is a DOCUMENTED fork divergence (pollen emits "pollen",
+		// upstream emits "bumblebee"). It is stripped alongside the 7
+		// non-deterministic fields so the differential asserts detection-logic
+		// parity, not self-identification-string parity. See normalize_diff.go
+		// and CHANGES.md "Modified" for the rationale.
+		if _, exists := got["scanner_name"]; exists {
+			t.Error("normalize() left key 'scanner_name' in output; should have stripped it (documented fork divergence)")
+		}
+
 		// Stable fields that MUST be preserved.
 		for _, key := range []string{
-			"record_id", "record_type", "schema_version", "scanner_name",
+			"record_id", "record_type", "schema_version",
 			"ecosystem", "package_name", "version",
 		} {
 			if _, exists := got[key]; !exists {
