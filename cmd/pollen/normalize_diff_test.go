@@ -60,6 +60,13 @@ func TestNormalize(t *testing.T) {
 			t.Error("normalize() left key 'scanner_name' in output; should have stripped it (documented fork divergence)")
 		}
 
+		// scanner_version is also stripped: it is build identity (Go VCS/ldflags
+		// version stamp) that differs between any two separately-built or
+		// differently-tagged binaries, not detection logic.
+		if _, exists := got["scanner_version"]; exists {
+			t.Error("normalize() left key 'scanner_version' in output; should have stripped it (build-identity field)")
+		}
+
 		// Stable fields that MUST be preserved.
 		for _, key := range []string{
 			"record_id", "record_type", "schema_version",

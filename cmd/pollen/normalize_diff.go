@@ -7,11 +7,12 @@ package main
 // normalization. Raw output always differs because of:
 //   - 7 non-deterministic fields (run_id, scan_time, end_time, duration_ms,
 //     endpoint.hostname, endpoint.username, endpoint.uid)
-//   - scanner_name field — intentional fork divergence: pollen emits "pollen",
-//     upstream bumblebee emits "bumblebee". This is a documented fork delta
-//     (CHANGES.md "Modified") that proves honest self-identification, not
-//     behavioral drift. normalize() strips scanner_name from both sides so the
-//     differential asserts DETECTION-LOGIC parity, not self-identification parity.
+//   - scanner_name / scanner_version fields — self-identification + build
+//     identity. pollen emits scanner_name "pollen" (vs upstream "bumblebee") and
+//     its own build version, while upstream emits "bumblebee" and "v0.1.1". These
+//     differ between any two separately-built binaries by design (CHANGES.md
+//     "Modified"); normalize() strips both so the differential asserts
+//     DETECTION-LOGIC parity, not self-identification or version-string parity.
 //   - record ordering — the scanner spawns 4 concurrent workers; records emit
 //     in worker-completion order (non-deterministic). Sorting by record_id
 //     (a stable SHA-256 content key over the package identity tuple) removes
@@ -23,9 +24,9 @@ package main
 // arbitrary position. This fail-closed behavior means a truncated or malformed
 // feed is surfaced as a test failure, not a false pass.
 //
-// Fields stripped (8 total = 7 non-deterministic + 1 documented fork divergence):
+// Fields stripped (9 total = 7 non-deterministic + 2 fork/build-identity):
 //
-//	Top-level (5):  run_id, scan_time, end_time, duration_ms, scanner_name
+//	Top-level (6):  run_id, scan_time, end_time, duration_ms, scanner_name, scanner_version
 //	Endpoint (3):   hostname, username, uid
 //
 // Sort key: record_id (string, ascending). record_id is a SHA-256 of the
@@ -49,18 +50,23 @@ import (
 //   - end_time     — wall-clock (scan_summary only)
 //   - duration_ms  — elapsed wall-clock time (scan_summary only)
 //
-// Documented fork divergence (1):
+// Documented fork / build-identity divergence (2):
 //   - scanner_name — pollen emits "pollen"; upstream emits "bumblebee".
-//     This is intentional (FORK-04 trademark + honest identity). Stripping it
-//     here means the differential asserts detection-logic parity, not
-//     self-identification-string parity. The carve-out is documented in
-//     CHANGES.md under Modified.
+//     Intentional (FORK-04 trademark + honest identity).
+//   - scanner_version — the scanner's own build version (Go VCS/ldflags stamp).
+//     It differs between any two separately-built or differently-tagged binaries:
+//     pollen uses its own v0.1.1-pollen.N versioning, an untagged pollen build
+//     emits a v0.0.0-<pseudo> version, and upstream's tagged clone emits v0.1.1.
+//     This is build identity, not detection logic. Stripping both means the
+//     differential asserts DETECTION-LOGIC parity, not self-identification or
+//     version-string parity. Documented in CHANGES.md under Modified.
 var topLevelStripKeys = map[string]struct{}{
-	"run_id":       {},
-	"scan_time":    {},
-	"end_time":     {},
-	"duration_ms":  {},
-	"scanner_name": {},
+	"run_id":          {},
+	"scan_time":       {},
+	"end_time":        {},
+	"duration_ms":     {},
+	"scanner_name":    {},
+	"scanner_version": {},
 }
 
 // endpointStripKeys are the endpoint sub-object JSON keys deleted from every
