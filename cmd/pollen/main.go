@@ -1,4 +1,4 @@
-// Command bumblebee is a read-only endpoint package inventory collector.
+// Command pollen is a read-only endpoint package inventory collector.
 //
 // It walks profile-scoped filesystem roots and emits NDJSON records describing
 // installed packages found in lockfiles and install metadata. It does NOT
@@ -7,10 +7,10 @@
 //
 // Subcommands:
 //
-//	bumblebee scan     [--profile P] ...    run a scan and emit NDJSON records
-//	bumblebee roots    [--profile P] ...    print the resolved scan roots and exit
-//	bumblebee selftest [flags]              scan embedded fixtures and verify detection
-//	bumblebee version                       print version and exit
+//\tpollen scan     [--profile P] ...    run a scan and emit NDJSON records
+//\tpollen roots    [--profile P] ...    print the resolved scan roots and exit
+//\tpollen selftest [flags]              scan embedded fixtures and verify detection
+//\tpollen version                       print version and exit
 //
 // Subcommand implementations and their support code live in sibling files:
 //
@@ -83,15 +83,15 @@ func main() {
 }
 
 func usage(w io.Writer) {
-	fmt.Fprintln(w, `bumblebee — endpoint package inventory collector
+	fmt.Fprintln(w, `pollen — endpoint package inventory collector
 
 usage:
-  bumblebee scan     [flags]   run a scan and emit NDJSON records
-  bumblebee roots    [flags]   print the resolved scan roots and exit
-  bumblebee selftest [flags]   scan embedded fixtures and verify detection
-  bumblebee version            print version and exit
+  pollen scan     [flags]   run a scan and emit NDJSON records
+  pollen roots    [flags]   print the resolved scan roots and exit
+  pollen selftest [flags]   scan embedded fixtures and verify detection
+  pollen version             print version and exit
 
-run "bumblebee scan --help" for scan flags, including --profile.`)
+run "pollen scan --help" for scan flags, including --profile.`)
 }
 
 // scanOpts holds flag values shared by the scan subcommand.
@@ -212,7 +212,7 @@ func runScan(args []string) int {
 		BatchSize: o.httpBatchSize,
 		AllowHTTP: o.httpAllowHTTP,
 		Gzip:      o.httpGzip,
-		UserAgent: fmt.Sprintf("bumblebee/%s", currentVersion()),
+		UserAgent: fmt.Sprintf("pollen/%s", currentVersion()),
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())

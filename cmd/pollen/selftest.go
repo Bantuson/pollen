@@ -48,7 +48,7 @@ func runSelftest(args []string) int {
 
 	start := time.Now()
 
-	tmp, err := os.MkdirTemp("", "bumblebee-selftest-*")
+	tmp, err := os.MkdirTemp("", "pollen-selftest-*")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "selftest: mktemp: %v\n", err)
 		return 1

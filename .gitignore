@@ -7,3 +7,4 @@
 
 # goreleaser output
 /dist/
+pollen.exe

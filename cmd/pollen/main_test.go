@@ -578,8 +578,8 @@ func TestCurrentVersionFallbackIsNonEmpty(t *testing.T) {
 
 func TestVersionStringShape(t *testing.T) {
 	s := versionString()
-	if !strings.HasPrefix(s, "bumblebee ") {
-		t.Errorf("versionString = %q, want 'bumblebee ' prefix", s)
+	if !strings.HasPrefix(s, "pollen ") {
+		t.Errorf("versionString = %q, want 'pollen ' prefix", s)
 	}
 	for _, needle := range []string{"\ncommit:", "\nbuilt: ", "\ngo:    "} {
 		if !strings.Contains(s, needle) {

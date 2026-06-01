@@ -19,7 +19,7 @@ var Version = ""
 // info). Used by callers that need a single token, such as the records'
 // scanner_version field and the HTTP sink's User-Agent.
 func currentVersion() string {
-	const fileDefault = "0.1.1"
+	const fileDefault = "0.1.1-pollen.1"
 	if v := strings.TrimSpace(Version); v != "" {
 		return v
 	}
@@ -34,7 +34,7 @@ func currentVersion() string {
 	return v
 }
 
-// versionString returns the multi-line output for `bumblebee version`.
+// versionString returns the multi-line output for `pollen version`.
 // It includes the version, VCS revision, build time, and Go runtime so
 // operators triaging an emitted finding can identify the exact binary
 // that produced it.
@@ -62,7 +62,7 @@ func versionString() string {
 		}
 	}
 	return fmt.Sprintf(
-		"bumblebee %s\ncommit: %s\nbuilt:  %s\ngo:     %s",
+		"pollen %s\ncommit: %s\nbuilt:  %s\ngo:     %s",
 		currentVersion(), revision, built, runtime.Version(),
 	)
 }
