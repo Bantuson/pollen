@@ -1,0 +1,14 @@
+Pollen
+
+This product includes software developed by Perplexity AI Inc. and
+contributors to the Bumblebee project (github.com/perplexityai/bumblebee),
+licensed under the Apache License 2.0.
+
+Pollen is a derivative work that adds Windows compatibility for use within
+the Beekeeper supply-chain safety harness (github.com/bantuson/beekeeper).
+
+Pollen is not affiliated with, endorsed by, or supported by Perplexity AI Inc.
+For general-purpose supply-chain scanning on macOS and Linux, use upstream
+Bumblebee directly.
+
+Changes from upstream are documented in CHANGES.md.
