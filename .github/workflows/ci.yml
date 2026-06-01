@@ -60,9 +60,13 @@ jobs:
           ./dist/pollen-selftest selftest
 
       - name: Check go.mod/go.sum are tidy
+        shell: bash
         run: |
           go mod tidy
-          git diff --exit-code go.mod go.sum
+          git diff --exit-code -- go.mod
+          # Pollen is a zero-dependency module, so go.sum may not exist.
+          # Only assert tidiness on go.sum when it is actually present.
+          if [ -f go.sum ]; then git diff --exit-code -- go.sum; fi
 
   govulncheck:
     # Mirrors upstream's govulncheck posture (trivially fast with zero external deps).
