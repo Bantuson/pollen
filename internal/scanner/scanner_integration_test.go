@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/perplexityai/bumblebee/internal/model"
-	"github.com/perplexityai/bumblebee/internal/output"
+	"github.com/bantuson/pollen/internal/model"
+	"github.com/bantuson/pollen/internal/output"
 )
 
 // TestExpandedEcosystems exercises end-to-end dispatch for every ecosystem

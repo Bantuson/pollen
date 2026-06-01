@@ -22,7 +22,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/perplexityai/bumblebee/internal/model"
+	"github.com/bantuson/pollen/internal/model"
 )
 
 const Ecosystem = model.EcosystemRubyGems

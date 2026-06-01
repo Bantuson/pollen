@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/perplexityai/bumblebee/internal/model"
+	"github.com/bantuson/pollen/internal/model"
 )
 
 // StatsReporter reports transport-side counters that can be copied into

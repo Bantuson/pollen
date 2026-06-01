@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/perplexityai/bumblebee/internal/model"
+	"github.com/bantuson/pollen/internal/model"
 )
 
 func writeFile(t *testing.T, path, body string) {

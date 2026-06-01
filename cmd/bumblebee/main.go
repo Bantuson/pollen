@@ -39,11 +39,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/perplexityai/bumblebee/internal/endpoint"
-	"github.com/perplexityai/bumblebee/internal/exposure"
-	"github.com/perplexityai/bumblebee/internal/model"
-	"github.com/perplexityai/bumblebee/internal/output"
-	"github.com/perplexityai/bumblebee/internal/scanner"
+	"github.com/bantuson/pollen/internal/endpoint"
+	"github.com/bantuson/pollen/internal/exposure"
+	"github.com/bantuson/pollen/internal/model"
+	"github.com/bantuson/pollen/internal/output"
+	"github.com/bantuson/pollen/internal/scanner"
 )
 
 type stringList []string

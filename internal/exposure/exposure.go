@@ -23,8 +23,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/perplexityai/bumblebee/internal/model"
-	"github.com/perplexityai/bumblebee/internal/normalize"
+	"github.com/bantuson/pollen/internal/model"
+	"github.com/bantuson/pollen/internal/normalize"
 )
 
 // Catalog is a parsed exposure catalog.

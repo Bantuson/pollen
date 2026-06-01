@@ -33,8 +33,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/perplexityai/bumblebee/internal/model"
-	"github.com/perplexityai/bumblebee/internal/scanner"
+	"github.com/bantuson/pollen/internal/model"
+	"github.com/bantuson/pollen/internal/scanner"
 )
 
 // rootsOpts groups the scoping inputs to resolveRoots. Adding a new

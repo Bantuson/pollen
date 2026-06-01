@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/perplexityai/bumblebee/internal/model"
+	"github.com/bantuson/pollen/internal/model"
 )
 
 func TestResolveDeviceIDUnsetFlag(t *testing.T) {

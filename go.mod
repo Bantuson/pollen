@@ -1,3 +1,3 @@
-module github.com/perplexityai/bumblebee
+module github.com/bantuson/pollen
 
 go 1.25

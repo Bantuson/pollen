@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/perplexityai/bumblebee/internal/model"
+	"github.com/bantuson/pollen/internal/model"
 )
 
 func TestScanGoSum(t *testing.T) {
