@@ -24,6 +24,14 @@ This file documents every significant change Pollen makes from the pinned upstre
   updated to `pollen`
 - **Env var test overrides:** `BUMBLEBEE_USERS_DIR` → `POLLEN_USERS_DIR`,
   `BUMBLEBEE_TEST_DEVICE_ID` → `POLLEN_TEST_DEVICE_ID` (trademark discipline, FORK-04)
+- **`scanner_name` NDJSON field:** `"bumblebee"` → `"pollen"` (`internal/model/model.go`
+  `ScannerName` constant). Every emitted NDJSON record now carries `"scanner_name": "pollen"`.
+  Upstream continues to emit `"scanner_name": "bumblebee"`. This is an **intentional, documented
+  fork divergence** (FORK-04 trademark + honest self-identification). The differential test
+  (`TestDifferential` in `cmd/pollen/differential_test.go`) normalizes this field out of both
+  sides before the byte-for-byte assertion so the test proves DETECTION-LOGIC parity, not
+  self-identification-string parity. The normalization carve-out is documented in
+  `cmd/pollen/normalize_diff.go`.
 - **Test path separators:** `internal/scanner/scanner_test.go` `TestEndToEndScan` — hardcoded
   `/proj/` and `/dup/` path separators replaced with `filepath.Separator` for Windows portability
 - **Test skips:** 6 Unix-specific test functions in `cmd/pollen/main_test.go` marked with
