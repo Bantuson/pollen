@@ -11,7 +11,7 @@ import (
 
 const (
 	SchemaVersion = "0.1.0"
-	ScannerName   = "bumblebee"
+	ScannerName   = "pollen"
 
 	RecordTypePackage     = "package"
 	RecordTypeFinding     = "finding"

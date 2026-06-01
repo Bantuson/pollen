@@ -1,7 +1,7 @@
-# bumblebee
+# Pollen
 
-Bumblebee is a read-only inventory collector for package, extension,
-and developer-tool metadata on macOS and Linux developer endpoints.
+Pollen is a read-only inventory collector for package, extension,
+and developer-tool metadata on macOS, Linux, and Windows developer endpoints.
 
 It answers a narrow supply-chain response question: when an advisory
 names a package, extension, or version, which developer machines show
@@ -12,10 +12,18 @@ touched the network, but supply-chain response often needs a different
 view: messy local state across lockfiles, package-manager metadata,
 extension manifests, and supported developer-tool configs.
 
-Bumblebee turns that scattered on-disk state into structured NDJSON
+Pollen turns that scattered on-disk state into structured NDJSON
 component records and, when given an exposure catalog, flags exact
 matches for fast, read-only exposure checks when responders already
 know what they are looking for.
+
+> **Attribution:** Pollen is derived from
+> [perplexityai/bumblebee](https://github.com/perplexityai/bumblebee) under the
+> Apache License 2.0. It is a bounded Windows-focused fork that exists to serve
+> the [Beekeeper](https://github.com/bantuson/beekeeper) supply-chain safety
+> harness. Pollen is not affiliated with or endorsed by Perplexity AI Inc. For
+> general-purpose supply-chain scanning on macOS and Linux, use upstream
+> Bumblebee directly.
 
 ## Scope
 
@@ -27,7 +35,7 @@ know what they are looking for.
   [docs/inventory-sources.md](docs/inventory-sources.md). No package
   manager execution (`npm ls`, `pip show`, `go list`, ...) and no
   source-file reads. MCP host configs can carry environment values
-  and credentials in their `env` blocks; Bumblebee parses these
+  and credentials in their `env` blocks; Pollen parses these
   configs for the server inventory it needs but does not emit those
   values in its records.
 
@@ -55,26 +63,26 @@ Requires Go 1.25+. Zero non-stdlib dependencies.
 
 ```sh
 # Install the latest tagged release into $GOBIN.
-go install github.com/perplexityai/bumblebee/cmd/bumblebee@latest
+go install github.com/bantuson/pollen/cmd/pollen@latest
 
 # Or pin a specific tag.
-go install github.com/perplexityai/bumblebee/cmd/bumblebee@v0.1.1
+go install github.com/bantuson/pollen/cmd/pollen@v0.1.1-pollen.1
 ```
 
 To build from a checkout:
 
 ```sh
-go build -o bumblebee ./cmd/bumblebee
+go build -o pollen ./cmd/pollen
 go test ./...
 ```
 
 Stamp an explicit version at build time:
 
 ```sh
-go build -ldflags "-X main.Version=v0.1.1" -o bumblebee ./cmd/bumblebee
+go build -ldflags "-X main.Version=v0.1.1-pollen.1" -o pollen ./cmd/pollen
 ```
 
-`bumblebee version` prints the version plus the VCS revision, build
+`pollen version` prints the version plus the VCS revision, build
 time, and Go runtime — so a record emitted in production can be traced
 back to a specific build. Version precedence: `-ldflags` override,
 module version recorded by `go install`, then the in-tree default
@@ -86,18 +94,18 @@ After installing, run a built-in end-to-end check against embedded
 fixtures:
 
 ```sh
-bumblebee selftest
-# selftest OK (2 findings in 1ms)
+pollen selftest
+# selftest OK (3 findings in 1ms)
 ```
 
 The fixtures live inside the binary, use deliberately fake package
-names (`bumblebee-selftest-evil@0.0.0`), and make no network calls. A
+names (`pollen-selftest-evil@0.0.0`), and make no network calls. A
 non-zero exit means the local install can no longer detect what it
 should — a fast pre-deployment smoke test for fleet rollouts.
 
 ## Profiles
 
-Bumblebee is a one-shot scanner: each invocation performs a single scan
+Pollen is a one-shot scanner: each invocation performs a single scan
 and exits. Cadence is the runner's responsibility (cron, launchd, systemd,
 MDM, etc.). Each record carries `profile` and a per-root `root_kind` so
 receivers can keep populations separate.
@@ -114,20 +122,20 @@ receivers can keep populations separate.
 
 ```sh
 # Baseline global inventory.
-bumblebee scan --profile baseline > inventory.ndjson
+pollen scan --profile baseline > inventory.ndjson
 
 # Daily project sweep with explicit roots.
-bumblebee scan --profile project \
+pollen scan --profile project \
   --root "$HOME/code" \
   --root "$HOME/Developer"
 
 # Limit a run to selected emitted ecosystems.
-bumblebee scan --profile baseline \
+pollen scan --profile baseline \
   --ecosystem npm,pypi \
   --ecosystem go
 
 # On-demand exposure scan against a published advisory.
-bumblebee scan --profile deep \
+pollen scan --profile deep \
   --root "$HOME" \
   --exposure-catalog ./catalog.json \
   --max-duration 10m
@@ -136,7 +144,7 @@ bumblebee scan --profile deep \
 Preview the resolved roots without scanning:
 
 ```sh
-bumblebee roots --profile baseline
+pollen roots --profile baseline
 # prints "<root_kind>\t<path>" lines
 ```
 
@@ -145,7 +153,7 @@ optional for the other profiles. `--ecosystem` is repeatable and
 comma-separated. `--exposure-catalog` accepts a JSON file or a directory
 of `*.json` catalogs (merged non-recursively, all files must share
 `schema_version`). `--findings-only` requires `--exposure-catalog` and
-suppresses package records while keeping findings. `bumblebee scan --help`
+suppresses package records while keeping findings. `pollen scan --help`
 lists every flag.
 
 ## Output
@@ -166,8 +174,8 @@ Package record:
   "record_type": "package",
   "record_id": "package:...",
   "schema_version": "0.1.0",
-  "scanner_name": "bumblebee",
-  "scanner_version": "v0.1.1",
+  "scanner_name": "pollen",
+  "scanner_version": "v0.1.1-pollen.1",
   "run_id": "9b1f0c2e4d5a6b7c8d9e0f1a2b3c4d5e",
   "scan_time": "2026-05-15T18:22:01.482Z",
   "endpoint": {
@@ -211,8 +219,8 @@ Finding record (exposure-catalog match):
   "record_type": "finding",
   "record_id": "finding:...",
   "schema_version": "0.1.0",
-  "scanner_name": "bumblebee",
-  "scanner_version": "v0.1.1",
+  "scanner_name": "pollen",
+  "scanner_version": "v0.1.1-pollen.1",
   "run_id": "3a8c7d1e9f0b2a4c6d8e0f1a2b3c4d5e",
   "scan_time": "2026-05-15T18:22:01.482Z",
   "endpoint": {
@@ -273,15 +281,12 @@ keys. Bare top-level arrays are rejected. Unsupported future
 loaded together by pointing `--exposure-catalog` at a directory; see
 the flag description above.
 
-### Sample exposure catalogs
+### Exposure catalogs
 
-The [`threat_intel/`](threat_intel/) directory holds maintained exposure
-catalogs built from public threat-intelligence reporting on recent
-supply-chain campaigns, assembled with
-[Perplexity Computer](https://www.perplexity.ai/computer) and updated
-via PRs as new campaigns are reported. See
-[`threat_intel/README.md`](threat_intel/README.md) for the current
-catalog list and review guidance.
+The [`threat_intel/`](threat_intel/) directory ships empty by design — catalogs
+flow through `beekeeper catalogs sync` in the
+[Beekeeper](https://github.com/bantuson/beekeeper) harness. See
+[`threat_intel/README.md`](threat_intel/README.md) for details.
 
 ## License
 

@@ -44,7 +44,7 @@ var DefaultExcludes = []string{
 	// scanner does not need to read any of these and they routinely
 	// produce TCC denials when scanned under a LaunchAgent.
 	//
-	// The curated default roots in cmd/bumblebee only include the
+	// The curated default roots in cmd/pollen only include the
 	// handful of Library subpaths the scanner actually wants (e.g.
 	// Library/Python/<v>/site-packages via the Homebrew path, or
 	// Library/Application Support/Claude for MCP configs). When an

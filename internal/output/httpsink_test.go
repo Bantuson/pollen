@@ -70,7 +70,7 @@ func TestHTTPSink_BearerAuth_BatchAndFlush(t *testing.T) {
 		URL:       srv.URL,
 		Auth:      HTTPAuth{Mode: "bearer", Token: "shh"},
 		BatchSize: 2,
-		UserAgent: "bumblebee/test",
+		UserAgent: "pollen/test",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestHTTPSink_BearerAuth_BatchAndFlush(t *testing.T) {
 		if h.Get("Content-Type") != contentTypeNDJSON {
 			t.Errorf("bad content-type: %q", h.Get("Content-Type"))
 		}
-		if h.Get("User-Agent") != "bumblebee/test" {
+		if h.Get("User-Agent") != "pollen/test" {
 			t.Errorf("bad user-agent: %q", h.Get("User-Agent"))
 		}
 	}

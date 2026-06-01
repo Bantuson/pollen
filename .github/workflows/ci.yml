@@ -44,12 +44,12 @@ jobs:
         run: go test -race ./...
 
       - name: go build
-        run: go build -buildvcs=false ./cmd/bumblebee
+        run: go build -buildvcs=false ./cmd/pollen
 
-      - name: bumblebee selftest
+      - name: pollen selftest
         run: |
-          go build -buildvcs=false -o ./bumblebee ./cmd/bumblebee
-          ./bumblebee selftest
+          go build -buildvcs=false -o ./pollen ./cmd/pollen
+          ./pollen selftest
 
   govulncheck:
     name: govulncheck

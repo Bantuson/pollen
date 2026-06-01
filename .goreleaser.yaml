@@ -1,15 +1,15 @@
 version: 2
 
-project_name: bumblebee
+project_name: pollen
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: bumblebee
-    main: ./cmd/bumblebee
-    binary: bumblebee
+  - id: pollen
+    main: ./cmd/pollen
+    binary: pollen
     env:
       - CGO_ENABLED=0
     flags:
@@ -20,16 +20,17 @@ builds:
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
       - arm64
 
 archives:
-  - id: bumblebee
+  - id: pollen
     formats:
       - tar.gz
     name_template: >-
-      bumblebee_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+      pollen_{{ .Version }}_{{ .Os }}_{{ .Arch }}
     files:
       - LICENSE
       - README.md

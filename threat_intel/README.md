@@ -1,20 +1,27 @@
-# Threat Intelligence Exposure Catalogs
+# threat_intel/
 
-Maintained exposure catalogs for recent supply-chain campaigns, built from
-public threat-intelligence reporting with
-[Perplexity Computer](https://www.perplexity.ai/computer) and updated via
-PRs as fresh campaigns are reported.
+This directory ships **empty by design**.
 
-Pass a catalog to a scan with `--exposure-catalog <path>`. Review
-the entries against current advisories before production use.
+## Why is it empty?
 
-## Catalogs
+Beekeeper consumes upstream threat-intelligence catalogs directly via
+`beekeeper catalogs sync`, which pulls from the upstream source over HTTPS as
+part of normal operation (PRD §6.3 "reference" decision). Duplicating catalogs
+here would create two paths for the same data with two possible drift conditions.
+Single-source is cleaner.
 
-| File | Campaign | Source |
-|---|---|---|
-| [`mini-shai-hulud.json`](mini-shai-hulud.json) | Mini/Shai-Hulud May 2026 npm and PyPI compromise (OX Security affected-package table) | Cross-checked against Fleet, Socket, Snyk, Mistral, TanStack, The Hacker News |
-| [`nx-console-vscode-2026-05-18.json`](nx-console-vscode-2026-05-18.json) | Nx Console VS Code extension (`nrwl.angular-console` 18.95.0) compromise published to the VS Code Marketplace on 2026-05-18 (OpenVSX unaffected; remediated in 18.100.0+) | [StepSecurity, 2026-05-18](https://www.stepsecurity.io/blog/nx-console-vs-code-extension-compromised) |
-| [`antv-mini-shai-hulud.json`](antv-mini-shai-hulud.json) | AntV / Mini Shai-Hulud May 2026 npm worm wave (324 packages / 643 versions across npm and PyPI; scoped to artifacts detected on or after 2026-05-13) | [Socket, 2026-05-19](https://socket.dev/blog/antv-packages-compromised) |
-| [`node-ipc-credential-stealer.json`](node-ipc-credential-stealer.json) | `node-ipc` npm 2026-05 credential-stealer compromise (7 malicious versions) | [Socket, 2026-05-14](https://socket.dev/blog/node-ipc-package-compromised) |
-| [`shopsprint-decimal-typosquat.json`](shopsprint-decimal-typosquat.json) | Go `github.com/shopsprint/decimal` v1.3.3 typosquat with DNS TXT backdoor | [Socket, 2026-05-19](https://socket.dev/blog/popular-go-decimal-library-typosquat-dns-backdoor) |
-| [`gemstuffer.json`](gemstuffer.json) | GemStuffer RubyGems exfiltration campaign (123 gems / 155 versions) targeting UK local government | [Socket, 2026-05-13](https://socket.dev/blog/gemstuffer) |
+## Compatibility
+
+The `--exposure-catalog` CLI flag is preserved for compatibility with upstream
+Bumblebee's interface. It accepts a path to a catalog JSON file or directory.
+Pointing it at this directory returns no results (empty catalog) by default.
+
+To use live threat intelligence catalogs, run `beekeeper catalogs sync` from
+the [Beekeeper](github.com/bantuson/beekeeper) harness. Beekeeper manages the
+catalog lifecycle and passes catalog data to Pollen scans automatically.
+
+## Selftest fixtures
+
+Upstream selftest fixtures (used by `pollen selftest`) live under
+`cmd/pollen/selftest/` — not in this directory. Those fixtures are embedded at
+build time and are not catalogs in the threat-intel sense.
