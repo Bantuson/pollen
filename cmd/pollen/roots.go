@@ -410,7 +410,7 @@ func usersDirEffective() string {
 }
 
 // usersDirOverride returns a test-only override of the /Users parent
-// directory. Production callers leave BUMBLEBEE_USERS_DIR unset and the
+// directory. Production callers leave POLLEN_USERS_DIR unset and the
 // override resolves to the empty string, which means "use /Users".
 //
 // The override is read from an environment variable rather than wired
@@ -418,7 +418,7 @@ func usersDirEffective() string {
 // fake /Users path through every caller; production builds simply
 // never set the variable.
 func usersDirOverride() string {
-	return strings.TrimSpace(os.Getenv("BUMBLEBEE_USERS_DIR"))
+	return strings.TrimSpace(os.Getenv("POLLEN_USERS_DIR"))
 }
 
 // allUsersHomes enumerates real per-user home directories under the

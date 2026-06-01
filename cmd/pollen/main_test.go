@@ -18,8 +18,8 @@ func TestResolveDeviceIDUnsetFlag(t *testing.T) {
 }
 
 func TestResolveDeviceIDFromEnv(t *testing.T) {
-	t.Setenv("BUMBLEBEE_TEST_DEVICE_ID", "  abc-123  ")
-	id, warn := resolveDeviceID("BUMBLEBEE_TEST_DEVICE_ID")
+	t.Setenv("POLLEN_TEST_DEVICE_ID", "  abc-123  ")
+	id, warn := resolveDeviceID("POLLEN_TEST_DEVICE_ID")
 	if id != "abc-123" {
 		t.Fatalf("id = %q, want trimmed %q", id, "abc-123")
 	}
@@ -29,7 +29,7 @@ func TestResolveDeviceIDFromEnv(t *testing.T) {
 }
 
 func TestResolveDeviceIDMissingEnv(t *testing.T) {
-	const name = "BUMBLEBEE_TEST_DEVICE_ID_MISSING"
+	const name = "POLLEN_TEST_DEVICE_ID_MISSING"
 	id, warn := resolveDeviceID(name)
 	if id != "" {
 		t.Fatalf("id = %q, want empty", id)
@@ -40,8 +40,8 @@ func TestResolveDeviceIDMissingEnv(t *testing.T) {
 }
 
 func TestResolveDeviceIDEmptyEnv(t *testing.T) {
-	t.Setenv("BUMBLEBEE_TEST_DEVICE_ID_EMPTY", "   ")
-	id, warn := resolveDeviceID("BUMBLEBEE_TEST_DEVICE_ID_EMPTY")
+	t.Setenv("POLLEN_TEST_DEVICE_ID_EMPTY", "   ")
+	id, warn := resolveDeviceID("POLLEN_TEST_DEVICE_ID_EMPTY")
 	if id != "" {
 		t.Fatalf("id = %q, want empty", id)
 	}
@@ -343,7 +343,7 @@ func TestIsLikelyUserHomeName(t *testing.T) {
 
 // fakeUsersDir builds a /Users-shaped tree under t.TempDir() with the
 // given user names and any service entries the caller wants present.
-// It returns the absolute parent path (BUMBLEBEE_USERS_DIR value) and
+// It returns the absolute parent path (POLLEN_USERS_DIR value) and
 // the list of real user home paths.
 func fakeUsersDir(t *testing.T, users []string, services []string) (string, []string) {
 	t.Helper()
@@ -408,7 +408,7 @@ func TestResolveRootsBaselineAllUsersExpansion(t *testing.T) {
 	usersDir, realHomes := fakeUsersDir(t,
 		[]string{"alice", "bob"},
 		[]string{"Shared", "Guest", "root"})
-	t.Setenv("BUMBLEBEE_USERS_DIR", usersDir)
+	t.Setenv("POLLEN_USERS_DIR", usersDir)
 	// Make sure UserHomeDir() still resolves to something deterministic.
 	t.Setenv("HOME", realHomes[0])
 
@@ -472,7 +472,7 @@ func TestResolveRootsBaselineAllUsersIncludesSystemRoots(t *testing.T) {
 		t.Skip("system root layout asserted here is darwin-shaped")
 	}
 	usersDir, realHomes := fakeUsersDir(t, []string{"alice", "bob"}, nil)
-	t.Setenv("BUMBLEBEE_USERS_DIR", usersDir)
+	t.Setenv("POLLEN_USERS_DIR", usersDir)
 	t.Setenv("HOME", realHomes[0])
 
 	roots, _, err := resolveRoots(model.ProfileBaseline, nil, rootsOpts{AllUsers: true})
@@ -545,7 +545,7 @@ func TestResolveRootsProjectAllUsersExpansion(t *testing.T) {
 		t.Skip("--all-users expansion is darwin-only")
 	}
 	usersDir, realHomes := fakeUsersDir(t, []string{"alice", "bob"}, nil)
-	t.Setenv("BUMBLEBEE_USERS_DIR", usersDir)
+	t.Setenv("POLLEN_USERS_DIR", usersDir)
 	t.Setenv("HOME", realHomes[0])
 
 	for _, h := range realHomes {
