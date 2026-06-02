@@ -26,8 +26,13 @@ func Current(deviceID string) model.Endpoint {
 	}
 	if u, err := user.Current(); err == nil {
 		ep.Username = u.Username
-		ep.UID = u.Uid
-	} else {
+		if runtime.GOOS != "windows" {
+			// On Windows, u.Uid is a SID string (S-1-5-21-...), not a numeric UID.
+			// WPATH-02 requires endpoint.uid to be empty on Windows; leave ep.UID as zero value "".
+			ep.UID = u.Uid
+		}
+	} else if runtime.GOOS != "windows" {
+		// On Windows, os.Getuid() returns -1. WPATH-02 requires empty uid; skip.
 		ep.UID = strconv.Itoa(os.Getuid())
 	}
 	return ep
