@@ -43,7 +43,7 @@ builds:
       - -X main.Version={{.Version}}
     binary: pollen
 
-checksums:
+checksum:
   name_template: "checksums.txt"
 
 # cosign v3 keyless signing of checksums.txt. Signing the checksum file
