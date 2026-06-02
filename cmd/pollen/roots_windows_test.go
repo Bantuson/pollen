@@ -120,6 +120,104 @@ func TestWindowsBaselineRoots(t *testing.T) {
 	assertRoot(rubyGemsSystem, model.RootKindGlobalPackage)
 }
 
+// TestWindowsExtensionMCPRoots proves that resolveRoots(baseline) returns roots for:
+//   - all five editor-extension directories (WEXT-01: VS Code, Insiders, Cursor, Windsurf, VSCodium .vscode-oss)
+//   - browser-extension roots for Chromium-family (Chrome, Brave) and Firefox (WEXT-02)
+//   - all five MCP host-config directories (WEXT-03: Claude, Cline, Cursor, Windsurf, Gemini)
+//
+// Env vars are set via t.Setenv — never HOME — for Windows test isolation (Phase-2 Pitfall 5 prevention).
+// No t.Skip is used; the //go:build windows tag restricts this test to Windows only.
+func TestWindowsExtensionMCPRoots(t *testing.T) {
+	tmp := t.TempDir()
+	appdata := filepath.Join(tmp, "AppData", "Roaming")
+	localappdata := filepath.Join(tmp, "AppData", "Local")
+
+	t.Setenv("USERPROFILE", tmp)
+	t.Setenv("APPDATA", appdata)
+	t.Setenv("LOCALAPPDATA", localappdata)
+	t.Setenv("ProgramFiles", filepath.Join(tmp, "ProgramFiles"))
+
+	mustMkdir := func(p string) {
+		t.Helper()
+		if err := os.MkdirAll(p, 0o755); err != nil {
+			t.Fatalf("MkdirAll %q: %v", p, err)
+		}
+	}
+
+	// WEXT-01: editor-extension roots under USERPROFILE (home).
+	vsCode := filepath.Join(tmp, ".vscode", "extensions")
+	vsCodeInsiders := filepath.Join(tmp, ".vscode-insiders", "extensions")
+	cursor := filepath.Join(tmp, ".cursor", "extensions")
+	windsurf := filepath.Join(tmp, ".windsurf", "extensions")
+	vscodium := filepath.Join(tmp, ".vscode-oss", "extensions")
+	mustMkdir(vsCode)
+	mustMkdir(vsCodeInsiders)
+	mustMkdir(cursor)
+	mustMkdir(windsurf)
+	mustMkdir(vscodium)
+
+	// WEXT-02: browser-extension roots under LOCALAPPDATA (Chromium) and APPDATA (Firefox).
+	chromeExt := filepath.Join(localappdata, "Google", "Chrome", "User Data", "Default", "Extensions")
+	braveExt := filepath.Join(localappdata, "BraveSoftware", "Brave-Browser", "User Data", "Default", "Extensions")
+	firefoxProfiles := filepath.Join(appdata, "Mozilla", "Firefox", "Profiles")
+	mustMkdir(chromeExt)
+	mustMkdir(braveExt)
+	mustMkdir(firefoxProfiles)
+
+	// WEXT-03: MCP config roots — Claude Desktop + Cline under APPDATA; Cursor/Windsurf/Gemini under USERPROFILE.
+	claudeDir := filepath.Join(appdata, "Claude")
+	clineDir := filepath.Join(appdata, "cline")
+	cursorMCP := filepath.Join(tmp, ".cursor")  // already created above as cursor extensions parent
+	windsurfMCP := filepath.Join(tmp, ".windsurf") // already created above as windsurf extensions parent
+	geminiDir := filepath.Join(tmp, ".gemini")
+	// claudeDir and clineDir are new; cursorMCP, windsurfMCP already created.
+	mustMkdir(claudeDir)
+	mustMkdir(clineDir)
+	mustMkdir(geminiDir)
+
+	roots, _, err := resolveRoots(model.ProfileBaseline, nil, rootsOpts{})
+	if err != nil {
+		t.Fatalf("resolveRoots: %v", err)
+	}
+
+	// Build path→kind lookup for assertions.
+	got := make(map[string]string, len(roots))
+	for _, r := range roots {
+		got[r.Path] = r.Kind
+	}
+
+	assertRoot := func(path, wantKind string) {
+		t.Helper()
+		kind, ok := got[path]
+		if !ok {
+			t.Errorf("baseline missing root %q\n  present roots: %v", path, roots)
+			return
+		}
+		if kind != wantKind {
+			t.Errorf("root %q kind = %q, want %q", path, kind, wantKind)
+		}
+	}
+
+	// WEXT-01: all five editor-extension roots must be present.
+	assertRoot(vsCode, model.RootKindEditorExtension)
+	assertRoot(vsCodeInsiders, model.RootKindEditorExtension)
+	assertRoot(cursor, model.RootKindEditorExtension)
+	assertRoot(windsurf, model.RootKindEditorExtension)
+	assertRoot(vscodium, model.RootKindEditorExtension)
+
+	// WEXT-02: at least one Chromium-family Extensions dir and the Firefox Profiles parent.
+	assertRoot(chromeExt, model.RootKindBrowserExtension)
+	assertRoot(braveExt, model.RootKindBrowserExtension)
+	assertRoot(firefoxProfiles, model.RootKindBrowserExtension)
+
+	// WEXT-03: all five MCP host-config roots must be present.
+	assertRoot(claudeDir, model.RootKindMCPConfig)
+	assertRoot(clineDir, model.RootKindMCPConfig)
+	assertRoot(cursorMCP, model.RootKindMCPConfig)
+	assertRoot(windsurfMCP, model.RootKindMCPConfig)
+	assertRoot(geminiDir, model.RootKindMCPConfig)
+}
+
 // TestWindowsBaselineRootsEmptyAppdata proves that an empty APPDATA env var
 // produces zero APPDATA-derived roots and no CWD-relative path leak.
 // This validates the T-02-01 / T-02-06 threat mitigation (Pitfall 1 prevention).
