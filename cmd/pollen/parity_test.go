@@ -63,6 +63,14 @@ func TestParityAllEcosystems(t *testing.T) {
 	// on raw is cleanest and avoids any coupling with the normalization path.
 	assertEndpointOS(t, out, runtime.GOOS)
 
+	// Step 1b (Windows only): assert Windows path shape and empty uid.
+	// Uses RAW out (pre-normalization) so assertions are independent of normalize()'s strip logic.
+	// On non-Windows this block is skipped — the Windows helpers are not called.
+	if runtime.GOOS == "windows" {
+		assertWindowsPathShape(t, out)
+		assertWindowsEndpointUID(t, out)
+	}
+
 	// Step 2: normalize the output (strip non-deterministic fields, sort by record_id).
 	// normalize() is LOCKED — call it unchanged. It keeps endpoint.os in the output.
 	norm, err := normalize(out)
@@ -107,6 +115,62 @@ func assertEndpointOS(t *testing.T, ndjson []byte, want string) {
 		got, _ := ep["os"].(string)
 		if got != want {
 			t.Errorf("assertEndpointOS: line %d: endpoint.os = %q, want %q", i+1, got, want)
+		}
+	}
+}
+
+// assertWindowsPathShape asserts that every non-empty project_path / source_file
+// field in the NDJSON stream contains a drive letter (e.g. "C:") and no forward-slash
+// separators. Only called on Windows. Mirrors assertEndpointOS pattern: iterate lines,
+// unmarshal into map[string]any, check path fields. Skips records where the field is
+// absent, empty, or "." (relative root placeholder).
+func assertWindowsPathShape(t *testing.T, ndjson []byte) {
+	t.Helper()
+	lines := strings.Split(strings.TrimSpace(string(ndjson)), "\n")
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(line), &rec); err != nil {
+			continue
+		}
+		for _, field := range []string{"project_path", "source_file"} {
+			if v, ok := rec[field].(string); ok && v != "" && v != "." {
+				if strings.Contains(v, "/") {
+					t.Errorf("assertWindowsPathShape: line %d field %q = %q contains forward slash", i+1, field, v)
+				}
+				if len(v) < 2 || v[1] != ':' {
+					t.Errorf("assertWindowsPathShape: line %d field %q = %q missing drive letter", i+1, field, v)
+				}
+			}
+		}
+	}
+}
+
+// assertWindowsEndpointUID asserts every record with an endpoint sub-object
+// has an empty uid field. Only called on Windows. Mirrors assertEndpointOS pattern.
+func assertWindowsEndpointUID(t *testing.T, ndjson []byte) {
+	t.Helper()
+	lines := strings.Split(strings.TrimSpace(string(ndjson)), "\n")
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(line), &rec); err != nil {
+			continue
+		}
+		ep, ok := rec["endpoint"].(map[string]any)
+		if !ok {
+			continue
+		}
+		if uid, exists := ep["uid"]; exists {
+			if uidStr, _ := uid.(string); uidStr != "" {
+				t.Errorf("assertWindowsEndpointUID: line %d: endpoint.uid = %q, want empty on Windows", i+1, uidStr)
+			}
 		}
 	}
 }
