@@ -1,0 +1,9 @@
+{
+  "packages": [
+    {
+      "name": "parity/composer-canary",
+      "version": "1.0.0"
+    }
+  ],
+  "packages-dev": []
+}

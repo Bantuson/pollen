@@ -1,0 +1,7 @@
+{
+  // bun text lockfile (v1)
+  "lockfileVersion": 1,
+  "packages": {
+    "parity-bun-canary": ["parity-bun-canary@1.0.0", {}]
+  }
+}
