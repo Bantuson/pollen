@@ -192,6 +192,15 @@ func isBroadHomeRoot(path string) bool {
 	if dir, _ := filepath.Split(abs); dir == "/Users/" || dir == "/home/" {
 		return true
 	}
+	// Windows drive-root detection: filepath.VolumeName returns "C:" on Windows
+	// and "" on Unix, so this branch is a no-op off Windows (safe to add
+	// unconditionally without a build tag). C:\ is a broad filesystem root
+	// that baseline/project profiles must refuse — same semantics as "/" on Unix.
+	if vol := filepath.VolumeName(abs); vol != "" {
+		if abs == vol+string(filepath.Separator) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -256,6 +265,17 @@ func baselineHomeCandidates(home string) []scanner.Root {
 		add(filepath.Join(home, ".continue"), model.RootKindMCPConfig)
 	}
 
+	// Windows per-user package-manager install roots (npm, pnpm, Yarn, Bun,
+	// PyPI, Go modules, RubyGems, Composer). Defined in roots_windows.go and
+	// compiled only under GOOS=windows. filterExistingRoots (called by the
+	// caller) drops absent candidates — no special handling needed here.
+	switch runtime.GOOS {
+	case "windows":
+		for _, p := range windowsBaselinePackageRoots() {
+			add(p.Path, p.Kind)
+		}
+	}
+
 	// Browser extension trees. We point directly at the per-profile
 	// Extensions/ directories so the default home-tree excludes (which
 	// keep us out of Chromium/Firefox app trees for privacy reasons)
@@ -302,6 +322,8 @@ func systemRoots() []scanner.Root {
 			}
 		}
 		return roots
+	case "windows":
+		return windowsSystemRoots()
 	}
 	return nil
 }
@@ -525,6 +547,9 @@ func browserExtensionCandidateRoots(home string) []string {
 			filepath.Join(home, ".var", "app", "com.microsoft.Edge", "config", "microsoft-edge"),
 		}
 		chromiumBases["vivaldi"] = []string{filepath.Join(cfg, "vivaldi")}
+	case "windows":
+		// Windows browser-extension paths are Phase 4 (WEXT-02). This skeleton
+		// keeps the switch exhaustive for Windows and suppresses build warnings.
 	}
 	for _, bases := range chromiumBases {
 		for _, b := range bases {
@@ -555,6 +580,9 @@ func browserExtensionCandidateRoots(home string) []string {
 			filepath.Join(home, ".var", "app", "io.gitlab.librewolf-community", ".librewolf"),
 			filepath.Join(home, ".waterfox"),
 		)
+	case "windows":
+		// Windows Firefox/browser-extension paths are Phase 4 (WEXT-02). This skeleton
+		// keeps the switch exhaustive for Windows and suppresses build warnings.
 	}
 	return roots
 }
