@@ -6,6 +6,53 @@ This file documents every significant change Pollen makes from the pinned upstre
 
 ---
 
+## v0.1.1-pollen.2 (2026-06-02) — Windows root resolver
+
+> **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
+> the `v0.1.1-pollen.2` git tag + Sigstore signing + CycloneDX SBOM (via `release.yml`) are
+> **deferred to milestone (M2) close** by maintainer decision. See beekeeper STATE.md / ROADMAP
+> Phase 2 for the pending-release obligation and the exact tag/verify commands.
+
+Adds Windows package-root discovery for all eight ecosystems (Phase 2 / PRD §8.1 M2.2),
+satisfying WRES-01, WRES-02, and PTEST-01. All Windows code is build-tag-isolated so the
+Linux/macOS bytes — and the `TestDifferential` byte-for-byte guard — are unchanged.
+
+### Added
+
+- `cmd/pollen/roots_windows.go` (`//go:build windows`) — `windowsBaselinePackageRoots()` and
+  `windowsSystemRoots()`: Windows root discovery for npm, pnpm, Yarn, Bun, PyPI, Go modules,
+  RubyGems, and Composer, built from `%APPDATA%` / `%LOCALAPPDATA%` / `%USERPROFILE%` /
+  `%ProgramFiles%` via `filepath.Join` + `os.Getenv` (every env-var read guarded against empty),
+  with `globExisting` for the `Python*`, `.gem/ruby/*`, and `Ruby*` wildcard roots.
+- `cmd/pollen/roots_notwindows.go` (`//go:build !windows`) — nil stubs of both functions so the
+  `case "windows":` bodies in `roots.go` compile on Linux/macOS (Go compiles all `runtime.GOOS`
+  switch case bodies regardless of platform).
+- `cmd/pollen/roots_windows_test.go` (`//go:build windows`) — `TestWindowsBaselineRoots`
+  (8-ecosystem coverage) + empty-`%APPDATA%` guard test.
+- `cmd/pollen/parity_test.go` — `TestParityAllEcosystems` (PTEST-01): runs on all three OSes,
+  asserts `endpoint.os == runtime.GOOS` and equivalent normalized records across platforms.
+  Reuses `buildCurrentPollen` / `runBinaryOnFixture` / `normalize` from the differential harness;
+  `normalize_diff.go` is unchanged.
+- `cmd/pollen/testdata/parity-fixture/` — single fake-package fixture tree consumed by all three
+  OS parity runs (npm, pnpm, Yarn, Bun, PyPI, Go, RubyGems, Composer canary packages).
+
+### Modified
+
+- `cmd/pollen/roots.go` — added `case "windows":` delegation in `baselineHomeCandidates`,
+  `systemRoots`, and both `browserExtensionCandidateRoots` switches (the browser case is an
+  intentional empty Phase-4 skeleton); `isBroadHomeRoot` now refuses Windows drive roots (`C:\`),
+  the `%USERPROFILE%` parent (`C:\Users`), and immediate user homes (`C:\Users\<name>`) via
+  `filepath.VolumeName` — a no-op off Windows.
+- `cmd/pollen/main_test.go` — flipped the 6 Phase-2 `t.Skip` markers (Windows root-resolver
+  support is now implemented) and added Windows cases to `TestIsBroadHomeRoot`. The
+  `TestDifferential` Windows skip stays: the differential is Linux+macOS-only by design.
+
+### Removed
+
+- (none)
+
+---
+
 ## v0.1.1-pollen.1 (2026-06-01) — Initial fork
 
 ### Renamed
