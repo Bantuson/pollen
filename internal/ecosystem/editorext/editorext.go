@@ -44,6 +44,7 @@ var extensionRootSegments = []string{
 	".windsurf/extensions",
 	".windsurf-server/extensions",
 	".vscodium/extensions",
+	".vscode-oss/extensions", // VSCodium alternate install path (PRD §8.2)
 }
 
 // IsExtensionPackageJSON returns (true, extensionRoot, extensionDir) if path

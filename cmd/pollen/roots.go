@@ -251,6 +251,7 @@ func baselineHomeCandidates(home string) []scanner.Root {
 		".windsurf/extensions",
 		".windsurf-server/extensions",
 		".vscodium/extensions",
+		".vscode-oss/extensions", // VSCodium alternate install path (PRD §8.2, WEXT-01)
 	} {
 		add(filepath.Join(home, filepath.FromSlash(seg)), model.RootKindEditorExtension)
 	}
@@ -263,6 +264,7 @@ func baselineHomeCandidates(home string) []scanner.Root {
 	// absent filterExistingRoots drops them.
 	add(filepath.Join(home, ".cursor"), model.RootKindMCPConfig)
 	add(filepath.Join(home, ".codeium", "windsurf"), model.RootKindMCPConfig)
+	add(filepath.Join(home, ".windsurf"), model.RootKindMCPConfig) // WEXT-03: Windsurf MCP config at ~/.windsurf/mcp.json (distinct from .codeium/windsurf IDE root)
 	add(filepath.Join(home, ".claude"), model.RootKindMCPConfig)
 	add(filepath.Join(home, ".codex"), model.RootKindMCPConfig)
 	add(filepath.Join(home, ".gemini"), model.RootKindMCPConfig)
@@ -273,6 +275,13 @@ func baselineHomeCandidates(home string) []scanner.Root {
 		add(filepath.Join(home, ".config", "Claude"), model.RootKindMCPConfig)
 		add(filepath.Join(home, ".config", "Claude Code"), model.RootKindMCPConfig)
 		add(filepath.Join(home, ".continue"), model.RootKindMCPConfig)
+	case "windows":
+		// WEXT-03: Claude Desktop and Cline use %APPDATA% on Windows, not USERPROFILE.
+		// The env-var guard prevents a relative-path leak when APPDATA is unset.
+		if appdata := os.Getenv("APPDATA"); appdata != "" {
+			add(filepath.Join(appdata, "Claude"), model.RootKindMCPConfig)
+			add(filepath.Join(appdata, "cline"), model.RootKindMCPConfig)
+		}
 	}
 
 	// Windows per-user package-manager install roots (npm, pnpm, Yarn, Bun,
