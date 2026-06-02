@@ -6,6 +6,49 @@ This file documents every significant change Pollen makes from the pinned upstre
 
 ---
 
+## v0.1.1-pollen.4 (2026-06-02) — Windows extension & MCP coverage
+
+> **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
+> the `v0.1.1-pollen.4` git tag + Sigstore signing + CycloneDX SBOM (via `release.yml`) are
+> **deferred to milestone (M2) close** by maintainer decision (D-06). The `v0.1.1-pollen.2`,
+> `v0.1.1-pollen.3`, and `v0.1.1-pollen.4` signed-release obligations are all batched together
+> at M2 close. See beekeeper STATE.md Deferred Items for the pending tag/verify commands.
+
+Satisfies WEXT-01 (five editor-extension roots including VSCodium via both `.vscodium` and
+`.vscode-oss`), WEXT-02 (Chrome/Chromium/Edge/Brave per-profile `Extensions/` directories +
+Firefox `Profiles` parent on Windows), and WEXT-03 (Claude Desktop + Cline via `%APPDATA%`,
+Cursor/Windsurf/Gemini via `%USERPROFILE%` dotfiles, plus the new unconditional `.windsurf`
+MCP root fixing the Windsurf `mcp.json` gap on all platforms). `schema_version` stays `0.1.0`
+(behavioral fork, not protocol fork). The Linux/macOS differential (`TestDifferential`) remains
+byte-identical — all WEXT changes are Windows-only code paths; no Unix bytes changed.
+
+### Modified
+
+- `cmd/pollen/roots.go` — filled the two empty `case "windows":` skeletons in
+  `browserExtensionCandidateRoots`: Chrome, Chromium, Edge, Brave under `%LOCALAPPDATA%` (per-profile
+  `Extensions/` dirs) and Firefox `%APPDATA%\Mozilla\Firefox\Profiles` parent (using per-variable
+  env-var guards per Phase-2 Pitfall-5 discipline). Added `.vscode-oss/extensions` to
+  `baselineHomeCandidates` (alongside `.vscodium/extensions`) so both VSCodium install variants
+  resolve (WEXT-01). Added `filepath.Join(home, ".windsurf")` `RootKindMCPConfig` root
+  unconditionally before the `runtime.GOOS` switch so `%USERPROFILE%\.windsurf\mcp.json` is
+  reachable on all platforms (fixes the `.windsurf` MCP gap, WEXT-03). Added `case "windows":` MCP
+  block with `%APPDATA%\Claude` and `%APPDATA%\cline` roots (Cursor/Windsurf/Gemini already covered
+  by cross-platform dotfile roots).
+- `internal/ecosystem/editorext/editorext.go` — added `.vscode-oss/extensions` to
+  `extensionRootSegments` (alongside `.vscodium/extensions`), covering the alternate VSCodium
+  install path prescribed by PRD §8.2 (WEXT-01).
+
+### Added
+
+- `cmd/pollen/roots_windows_test.go` — `TestWindowsExtensionMCPRoots`: Windows-only fixture test
+  (`//go:build windows`, zero `t.Skip` calls) asserting all five editor-extension roots
+  (VS Code, VS Code Insiders, Cursor, Windsurf, VSCodium via both `.vscodium` and `.vscode-oss`),
+  all Chromium-family browser roots (Chrome, Chromium, Edge, Brave per-profile) + Firefox Profiles
+  parent, and all five MCP host-config roots (Claude Desktop, Cursor, Windsurf, Cline, Gemini CLI).
+  Test isolation via `t.Setenv(USERPROFILE/APPDATA/LOCALAPPDATA/ProgramFiles)` — never `HOME`.
+
+---
+
 ## v0.1.1-pollen.3 (2026-06-02) — Windows path representation
 
 > **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
