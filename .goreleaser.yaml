@@ -22,7 +22,8 @@
 version: 2
 
 builds:
-  - env:
+  - main: ./cmd/pollen
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
