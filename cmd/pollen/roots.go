@@ -558,8 +558,23 @@ func browserExtensionCandidateRoots(home string) []string {
 		}
 		chromiumBases["vivaldi"] = []string{filepath.Join(cfg, "vivaldi")}
 	case "windows":
-		// Windows browser-extension paths are Phase 4 (WEXT-02). This skeleton
-		// keeps the switch exhaustive for Windows and suppresses build warnings.
+		// WEXT-02: Chromium-family browser paths on Windows use %LOCALAPPDATA%.
+		// Each browser stores profiles under "<AppName>\User Data\<Profile>".
+		// The env-var guard prevents a relative-path leak when LOCALAPPDATA is unset.
+		if localappdata := os.Getenv("LOCALAPPDATA"); localappdata != "" {
+			chromiumBases["chrome"] = []string{
+				filepath.Join(localappdata, "Google", "Chrome", "User Data"),
+			}
+			chromiumBases["chromium"] = []string{
+				filepath.Join(localappdata, "Chromium", "User Data"),
+			}
+			chromiumBases["edge"] = []string{
+				filepath.Join(localappdata, "Microsoft", "Edge", "User Data"),
+			}
+			chromiumBases["brave"] = []string{
+				filepath.Join(localappdata, "BraveSoftware", "Brave-Browser", "User Data"),
+			}
+		}
 	}
 	for _, bases := range chromiumBases {
 		for _, b := range bases {
@@ -591,8 +606,15 @@ func browserExtensionCandidateRoots(home string) []string {
 			filepath.Join(home, ".waterfox"),
 		)
 	case "windows":
-		// Windows Firefox/browser-extension paths are Phase 4 (WEXT-02). This skeleton
-		// keeps the switch exhaustive for Windows and suppresses build warnings.
+		// WEXT-02: Firefox on Windows stores per-profile directories under
+		// %APPDATA%\Mozilla\Firefox\Profiles. We add the Profiles parent only;
+		// the walker recurses into per-profile subdirs and IsFirefoxExtensionsJSON
+		// matches the extensions.json file within each profile.
+		if appdata := os.Getenv("APPDATA"); appdata != "" {
+			roots = append(roots,
+				filepath.Join(appdata, "Mozilla", "Firefox", "Profiles"),
+			)
+		}
 	}
 	return roots
 }
