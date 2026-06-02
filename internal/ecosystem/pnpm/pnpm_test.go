@@ -3,6 +3,7 @@ package pnpm
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"testing"
 
@@ -59,6 +60,9 @@ func TestSplitPnpmStoreDir(t *testing.T) {
 }
 
 func TestIsPnpmStorePackageJSON(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("TestIsPnpmStorePackageJSON uses Unix-style paths (/x/proj) — Windows path-shape is covered by TestIsPnpmStorePackageJSONWindowsPath")
+	}
 	ok, proj, name, ver := IsPnpmStorePackageJSON("/x/proj/node_modules/.pnpm/lodash@4.17.21/node_modules/lodash/package.json")
 	if !ok || proj != "/x/proj" || name != "lodash" || ver != "4.17.21" {
 		t.Errorf("got ok=%v proj=%q name=%q ver=%q", ok, proj, name, ver)
@@ -293,5 +297,28 @@ packages:
 	}
 	if out[0].DirectDependency != nil {
 		t.Errorf("expected DirectDependency nil, got %v", *out[0].DirectDependency)
+	}
+}
+
+func TestIsPnpmStorePackageJSONWindowsPath(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("WPATH-01: Windows path shape test — meaningful only on Windows")
+	}
+	// pnpm store layout: <project>/node_modules/.pnpm/<name>@<ver>/node_modules/<name>/package.json
+	base := `C:\Users\fana\code\web-app\node_modules\.pnpm\left-pad@1.3.0\node_modules\left-pad\package.json`
+
+	ok, projectPath, name, version := IsPnpmStorePackageJSON(base)
+	if !ok {
+		t.Fatalf("IsPnpmStorePackageJSON(%q): got ok=false, want true", base)
+	}
+	wantProject := `C:\Users\fana\code\web-app`
+	if projectPath != wantProject {
+		t.Errorf("projectPath = %q, want %q", projectPath, wantProject)
+	}
+	if name != "left-pad" {
+		t.Errorf("name = %q, want %q", name, "left-pad")
+	}
+	if version != "1.3.0" {
+		t.Errorf("version = %q, want %q", version, "1.3.0")
 	}
 }
