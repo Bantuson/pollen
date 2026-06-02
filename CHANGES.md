@@ -6,6 +6,50 @@ This file documents every significant change Pollen makes from the pinned upstre
 
 ---
 
+## v0.1.1-pollen.3 (2026-06-02) — Windows path representation
+
+> **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
+> the `v0.1.1-pollen.3` git tag + Sigstore signing + CycloneDX SBOM (via `release.yml`) are
+> **deferred to milestone (M2) close** by maintainer decision (D-06). Both the `v0.1.1-pollen.2`
+> and `v0.1.1-pollen.3` signed-release obligations are batched together at M2 close. See beekeeper
+> STATE.md Deferred Items for the pending tag/verify commands.
+
+Satisfies WPATH-01 (Windows project_path / source_file use backslash separators + drive letter)
+and WPATH-02 (endpoint.uid is empty on Windows — SID strings suppressed). schema_version stays
+`0.1.0` (behavioral fork, not protocol fork). The Linux/macOS differential (`TestDifferential`)
+remains byte-identical — the WPATH changes are Windows-only code paths; no Unix bytes changed.
+
+### Modified
+
+- `internal/ecosystem/npm/npm.go` — `IsNodeModulesPackageJSON` wraps the `projectPath` join in
+  `filepath.FromSlash`: no-op on Linux/macOS (forward slash is native), converts to backslash on
+  Windows. Fixes WPATH-01 forward-slash leak in npm node_modules project_path.
+- `internal/ecosystem/pnpm/pnpm.go` — `IsPnpmStorePackageJSON` applies the same
+  `filepath.FromSlash` wrap to its `projectPath` join. Symmetric fix to npm.go (WPATH-01).
+- `internal/endpoint/endpoint.go` — `UID` assignments in `Current()` guarded by
+  `runtime.GOOS != "windows"`: both the `user.Current().Uid` happy path and the
+  `os.Getuid()` fallback are skipped on Windows, leaving `endpoint.uid` as the zero-value empty
+  string. On Linux/macOS the numeric UID is unchanged (D-04 regression guard). Fixes WPATH-02.
+- `cmd/pollen/parity_test.go` — `TestParityAllEcosystems` gains a Windows-only block
+  (after `assertEndpointOS`, before `normalize`) calling `assertWindowsPathShape` (every
+  non-empty project_path / source_file has a drive letter and no forward slash) and
+  `assertWindowsEndpointUID` (every endpoint sub-object has empty uid). On Linux/macOS the
+  block is skipped; the existing parity assertions run unchanged.
+
+### Added
+
+- `internal/ecosystem/npm/npm_test.go` — Windows-gated unit tests
+  `TestIsNodeModulesPackageJSONWindowsPath` and `TestIsNodeModulesPackageJSONScopedWindowsPath`
+  (skip on non-Windows via `runtime.GOOS != "windows"` guard; assert backslash drive-letter
+  projectPath for flat and scoped npm packages).
+- `internal/ecosystem/pnpm/pnpm_test.go` — Windows-gated unit test
+  `TestIsPnpmStorePackageJSONWindowsPath` (skip on non-Windows; asserts backslash drive-letter
+  projectPath for pnpm store layout).
+- `internal/endpoint/endpoint_test.go` — `TestCurrentWindowsUID`: on Windows asserts
+  `endpoint.uid == ""`; on Linux/macOS asserts uid is non-empty numeric string (D-04 regression).
+
+---
+
 ## v0.1.1-pollen.2 (2026-06-02) — Windows root resolver
 
 > **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
