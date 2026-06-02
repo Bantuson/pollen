@@ -131,6 +131,8 @@ func hostFromExtRoot(extRoot string) string {
 		return "windsurf"
 	case strings.Contains(p, "/.vscodium"):
 		return "vscodium"
+	case strings.Contains(p, "/.vscode-oss"):
+		return "vscodium"
 	default:
 		return "vscode"
 	}

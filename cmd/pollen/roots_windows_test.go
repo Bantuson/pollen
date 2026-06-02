@@ -150,11 +150,13 @@ func TestWindowsExtensionMCPRoots(t *testing.T) {
 	cursor := filepath.Join(tmp, ".cursor", "extensions")
 	windsurf := filepath.Join(tmp, ".windsurf", "extensions")
 	vscodium := filepath.Join(tmp, ".vscode-oss", "extensions")
+	vscodiumAlt := filepath.Join(tmp, ".vscodium", "extensions")
 	mustMkdir(vsCode)
 	mustMkdir(vsCodeInsiders)
 	mustMkdir(cursor)
 	mustMkdir(windsurf)
 	mustMkdir(vscodium)
+	mustMkdir(vscodiumAlt)
 
 	// WEXT-02: browser-extension roots under LOCALAPPDATA (Chromium) and APPDATA (Firefox).
 	chromeExt := filepath.Join(localappdata, "Google", "Chrome", "User Data", "Default", "Extensions")
@@ -204,6 +206,7 @@ func TestWindowsExtensionMCPRoots(t *testing.T) {
 	assertRoot(cursor, model.RootKindEditorExtension)
 	assertRoot(windsurf, model.RootKindEditorExtension)
 	assertRoot(vscodium, model.RootKindEditorExtension)
+	assertRoot(vscodiumAlt, model.RootKindEditorExtension)
 
 	// WEXT-02: at least one Chromium-family Extensions dir and the Firefox Profiles parent.
 	assertRoot(chromeExt, model.RootKindBrowserExtension)
