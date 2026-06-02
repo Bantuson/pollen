@@ -196,9 +196,19 @@ func isBroadHomeRoot(path string) bool {
 	// and "" on Unix, so this branch is a no-op off Windows (safe to add
 	// unconditionally without a build tag). C:\ is a broad filesystem root
 	// that baseline/project profiles must refuse — same semantics as "/" on Unix.
+	// Also treat C:\Users (the Windows /Users equivalent) and direct children
+	// C:\Users\<name> as broad — mirrors the Unix /Users and /Users/<name> cases.
 	if vol := filepath.VolumeName(abs); vol != "" {
 		if abs == vol+string(filepath.Separator) {
-			return true
+			return true // C:\ — Windows drive root
+		}
+		usersDir := vol + string(filepath.Separator) + "Users"
+		if abs == usersDir {
+			return true // C:\Users — Windows /Users equivalent
+		}
+		parent, _ := filepath.Split(abs)
+		if filepath.Clean(parent) == usersDir {
+			return true // C:\Users\<name> — Windows /Users/<name> equivalent
 		}
 	}
 	return false

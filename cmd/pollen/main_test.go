@@ -51,36 +51,53 @@ func TestResolveDeviceIDEmptyEnv(t *testing.T) {
 }
 
 func TestIsBroadHomeRoot(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("broad-home detection uses Unix-style paths; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
-	}
-	home := t.TempDir()
-	t.Setenv("HOME", home)
+	var broad, narrow []string
 
-	broad := []string{
-		home,
-		home + "/",
-		"/",
-		"/Users",
-		"/Users/someone",
-		"/home",
-		"/home/someone",
-		"/root",
+	if runtime.GOOS == "windows" {
+		// On Windows, os.UserHomeDir() reads USERPROFILE (not HOME).
+		// Set USERPROFILE to a temp dir so isBroadHomeRoot sees a known home.
+		home := t.TempDir()
+		t.Setenv("USERPROFILE", home)
+
+		broad = []string{
+			`C:\`,
+			`C:\Users`,
+			home,
+		}
+		narrow = []string{
+			filepath.Join(home, "code"),
+			filepath.Join(home, ".vscode", "extensions"),
+			`C:\Users\someone\code`,
+		}
+	} else {
+		home := t.TempDir()
+		t.Setenv("HOME", home)
+
+		broad = []string{
+			home,
+			home + "/",
+			"/",
+			"/Users",
+			"/Users/someone",
+			"/home",
+			"/home/someone",
+			"/root",
+		}
+		narrow = []string{
+			filepath.Join(home, "code"),
+			filepath.Join(home, "Developer"),
+			filepath.Join(home, ".vscode", "extensions"),
+			"/usr/local/lib",
+			"/opt/homebrew/lib",
+			"/Users/someone/code",
+			"/home/someone/code",
+		}
 	}
+
 	for _, p := range broad {
 		if !isBroadHomeRoot(p) {
 			t.Errorf("isBroadHomeRoot(%q) = false, want true", p)
 		}
-	}
-
-	narrow := []string{
-		filepath.Join(home, "code"),
-		filepath.Join(home, "Developer"),
-		filepath.Join(home, ".vscode", "extensions"),
-		"/usr/local/lib",
-		"/opt/homebrew/lib",
-		"/Users/someone/code",
-		"/home/someone/code",
 	}
 	for _, p := range narrow {
 		if isBroadHomeRoot(p) {
@@ -118,11 +135,13 @@ func TestResolveRootsBaselineExcludesProjectTrees(t *testing.T) {
 }
 
 func TestResolveRootsProjectIncludesCodeDir(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("HOME env override for resolveRoots is Unix-specific; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
-	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	if runtime.GOOS == "windows" {
+		// On Windows os.UserHomeDir() reads USERPROFILE, not HOME.
+		t.Setenv("USERPROFILE", home)
+	} else {
+		t.Setenv("HOME", home)
+	}
 	codeDir := filepath.Join(home, "code")
 	if err := os.MkdirAll(codeDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -144,7 +163,7 @@ func TestResolveRootsProjectIncludesCodeDir(t *testing.T) {
 
 func TestResolveRootsBaselineIncludesUserLocalPython(t *testing.T) {
 	if runtime.GOOS == "windows" {
-		t.Skip("Unix .local/lib/python path structure; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
+		t.Skip("Unix .local/lib/python layout; Windows PyPI roots covered by TestWindowsBaselineRoots in roots_windows_test.go")
 	}
 	home := t.TempDir()
 	t.Setenv("HOME", home)
@@ -270,11 +289,13 @@ func TestClassifyRootClaudeCodexMCP(t *testing.T) {
 }
 
 func TestResolveRootsBaselineRefusesBroadHome(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("HOME env override for broad-home detection is Unix-specific; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
-	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	if runtime.GOOS == "windows" {
+		// On Windows, USERPROFILE sets the home dir for isBroadHomeRoot comparison.
+		t.Setenv("USERPROFILE", home)
+	} else {
+		t.Setenv("HOME", home)
+	}
 	_, _, err := resolveRoots(model.ProfileBaseline, []string{home}, rootsOpts{})
 	if err == nil {
 		t.Fatalf("expected refusal for baseline+%q", home)
@@ -285,11 +306,13 @@ func TestResolveRootsBaselineRefusesBroadHome(t *testing.T) {
 }
 
 func TestResolveRootsProjectRefusesBroadHome(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("HOME env override for broad-home detection is Unix-specific; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
-	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	if runtime.GOOS == "windows" {
+		// On Windows, USERPROFILE sets the home dir for isBroadHomeRoot comparison.
+		t.Setenv("USERPROFILE", home)
+	} else {
+		t.Setenv("HOME", home)
+	}
 	_, _, err := resolveRoots(model.ProfileProject, []string{home}, rootsOpts{})
 	if err == nil {
 		t.Fatalf("expected refusal for project+%q", home)
@@ -297,11 +320,13 @@ func TestResolveRootsProjectRefusesBroadHome(t *testing.T) {
 }
 
 func TestResolveRootsDeepAllowsBroadHome(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("HOME env override and isBroadHomeRoot Unix-path logic; Windows root-resolver tests arrive in Phase 2 (v0.1.1-pollen.2)")
-	}
 	home := t.TempDir()
-	t.Setenv("HOME", home)
+	if runtime.GOOS == "windows" {
+		// On Windows, set USERPROFILE so os.UserHomeDir() resolves consistently.
+		t.Setenv("USERPROFILE", home)
+	} else {
+		t.Setenv("HOME", home)
+	}
 	roots, _, err := resolveRoots(model.ProfileDeep, []string{home}, rootsOpts{})
 	if err != nil {
 		t.Fatalf("deep should accept broad home root: %v", err)
