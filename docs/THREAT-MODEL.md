@@ -95,7 +95,7 @@ Pollen uses cosign v3 keyless OIDC signing. There is no private signing key
 stored anywhere — the signing identity is bound to the GitHub Actions workflow
 at release time via the OIDC token:
 ```
-https://github.com/bantuson/pollen/.github/workflows/release.yml@refs/tags/v...
+https://github.com/Bantuson/pollen/.github/workflows/release.yml@refs/tags/v...
 ```
 An attacker who cannot trigger the release workflow cannot produce a valid
 signature. Stealing a developer's machine credentials does not yield a signing key.
@@ -211,7 +211,7 @@ then verify:
 cosign verify-blob \
   --bundle checksums.txt.sigstore.json \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp "^https://github\.com/bantuson/pollen/" \
+  --certificate-identity-regexp "^https://github\.com/Bantuson/pollen/" \
   checksums.txt
 ```
 
@@ -294,13 +294,23 @@ who compromises this account can produce a signed release.
 identity; require a second GitHub account to approve the release tag push
 (enforced in plan 05 for v0.1.1-pollen.1 as a process discipline).
 
-### Assumption A1 — cosign identity string shape
+### Assumption A1 — cosign identity string shape — RESOLVED
 
-The `--certificate-identity-regexp` in the verify command above uses
-`^https://github\.com/bantuson/pollen/` based on the standard GitHub Actions
-OIDC identity format. The exact URL in the first real release's sigstore
-certificate will be inspected during plan 05 and this document updated if
-the pattern differs.
+**RESOLVED (v0.1.1-pollen.1, 2026-06-02).** The first release's sigstore
+certificate subject is:
+
+```
+https://github.com/Bantuson/pollen/.github/workflows/release.yml@refs/tags/v0.1.1-pollen.1
+```
+
+GitHub Actions OIDC preserves the **canonical account casing** — `Bantuson`
+(capital B), the GitHub account name — NOT the lowercase Go module path
+(`github.com/bantuson/pollen` in `go.mod`). The `--certificate-identity-regexp`
+above is therefore case-sensitive on `Bantuson`. Verified end-to-end:
+`cosign verify-blob` returns `Verified OK` against
+`^https://github\.com/Bantuson/pollen/`. (An earlier lowercase regexp failed
+with `none of the expected identities matched … got subjects
+[https://github.com/Bantuson/pollen/…]` — the A1 correction folded in here.)
 
 ---
 

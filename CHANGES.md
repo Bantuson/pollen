@@ -49,3 +49,26 @@ This file documents every significant change Pollen makes from the pinned upstre
 ### Removed
 
 - (none in initial fork)
+
+### Fixed (release bring-up, 2026-06-02)
+
+These surfaced only when the first GitHub Actions CI + release pipeline ran — none could be
+caught on the Windows dev box, where `TestDifferential` skips and the release pipeline cannot
+run locally:
+
+- **Differential normalization also strips `scanner_version`** (`cmd/pollen/normalize_diff.go`).
+  pollen emits its own Go build/VCS version (`v0.0.0-<pseudo>` untagged, `v0.1.1-pollen.1` tagged)
+  while upstream's tagged clone emits `v0.1.1`. Like `scanner_name`, this is build identity, not
+  detection logic; stripping it keeps `TestDifferential` a DETECTION-LOGIC parity check. With this,
+  the differential is green on Linux+macOS CI.
+- **CI `go.mod/go.sum` tidiness check made zero-dependency-safe** (`.github/workflows/ci.yml`):
+  pollen has no external deps, so `go.sum` does not exist; the check now runs under `shell: bash`
+  and only asserts `go.sum` when present.
+- **`.goreleaser.yaml` corrected for GoReleaser v2:** top-level `checksums:` → `checksum:` (v2
+  schema), and added `main: ./cmd/pollen` (the build entry otherwise defaulted to the repo root,
+  which has no `main`). Validated with `goreleaser check` + `goreleaser build --snapshot`.
+- **cosign identity casing (Assumption A1 resolved):** the real Sigstore certificate subject is
+  `https://github.com/Bantuson/pollen/.github/workflows/release.yml@refs/tags/v0.1.1-pollen.1`
+  — GitHub OIDC uses the canonical account casing `Bantuson` (capital B), not the lowercase Go
+  module path. `docs/THREAT-MODEL.md`'s `--certificate-identity-regexp` corrected to
+  `^https://github\.com/Bantuson/pollen/`; `cosign verify-blob` returns `Verified OK`.
