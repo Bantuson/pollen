@@ -3,6 +3,7 @@ package npm
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -222,5 +223,38 @@ func TestMalformedLockfile(t *testing.T) {
 	}
 	if len(*got) != 0 {
 		t.Errorf("no records expected")
+	}
+}
+
+func TestIsNodeModulesPackageJSONWindowsPath(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("WPATH-01: Windows path-shape test — meaningful only on Windows (/ is native here)")
+	}
+	// Raw Windows string literal — backslash separators + drive letter.
+	base := `C:\Users\fana\code\web-app\node_modules\left-pad\package.json`
+
+	ok, projectPath := IsNodeModulesPackageJSON(base)
+	if !ok {
+		t.Fatalf("IsNodeModulesPackageJSON(%q): got ok=false, want true", base)
+	}
+	want := `C:\Users\fana\code\web-app`
+	if projectPath != want {
+		t.Errorf("IsNodeModulesPackageJSON projectPath = %q, want %q", projectPath, want)
+	}
+}
+
+func TestIsNodeModulesPackageJSONScopedWindowsPath(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("WPATH-01: Windows path-shape test — meaningful only on Windows")
+	}
+	base := `C:\Users\fana\code\web-app\node_modules\@scope\pkg\package.json`
+
+	ok, projectPath := IsNodeModulesPackageJSON(base)
+	if !ok {
+		t.Fatalf("IsNodeModulesPackageJSON(%q): got ok=false, want true", base)
+	}
+	want := `C:\Users\fana\code\web-app`
+	if projectPath != want {
+		t.Errorf("IsNodeModulesPackageJSON projectPath = %q, want %q", projectPath, want)
 	}
 }
