@@ -6,6 +6,60 @@ This file documents every significant change Pollen makes from the pinned upstre
 
 ---
 
+## v0.1.1-pollen.5 (2026-06-03) — Milestone close
+
+> **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
+> the `v0.1.1-pollen.5` git tag + Sigstore signing + CycloneDX SBOM (via `release.yml`) are
+> **deferred to milestone (M2) close** by maintainer decision (D-05). The `v0.1.1-pollen.2`,
+> `v0.1.1-pollen.3`, `v0.1.1-pollen.4`, and `v0.1.1-pollen.5` signed-release obligations are
+> all batched together at M2 close and cut in order (pollen.2 → .3 → .4 → .5) by the maintainer.
+> See beekeeper STATE.md Deferred Items + the Phase 5 release runbook for the exact tag/verify
+> commands.
+
+This is the milestone-complete tag for Beekeeper v1.1.0 "Pollen". It closes the milestone
+and marks the transition from local-only to publicly-signed releases.
+
+No Pollen **source code** changed in this release — all milestone-close work landed in the
+beekeeper repo. This release provides the metadata layer (UPSTREAM.md sync doc, VERSION bump,
+CHANGES.md entry) required before the batched tag cut.
+
+`schema_version` stays `0.1.0` (behavioral fork, not protocol fork). The Linux/macOS
+differential (`TestDifferential`) is unaffected — no detection-logic changes in this release.
+
+### Added / Updated (metadata only)
+
+- `UPSTREAM.md` — Extended with concrete 8-step sync workflow (runnable commands, worked
+  example invocations), version-history table rows for pollen.2/3/4/5, and the
+  `## Contribution-back status` section documenting the prepared Windows patch set
+  (commits `2c202ef..b906404`), the upstream PR #3/#4 context, and the DEFERRED
+  disposition per maintainer decision D-2 (SYNC-01 satisfied; SYNC-02 satisfied-by-documented-
+  deferral). A second maintainer can now follow the upstream sync workflow cold.
+- `VERSION` — Bumped from `0.1.1-pollen.4` to `0.1.1-pollen.5`.
+- `CHANGES.md` — This entry.
+
+### Cross-repo deliverables (beekeeper repo)
+
+The following beekeeper deliverables close the milestone alongside this Pollen release; they
+are tracked in beekeeper's STATE.md and ROADMAP.md:
+
+- **BKINT-02** — beekeeper CI installs Pollen at a pinned version (`go install
+  github.com/bantuson/pollen/cmd/pollen@v0.1.1-pollen.5`); Windows inventory-test skip
+  baseline is zero after this phase.
+- **PTEST-05** — Windows Sentry honeypot E2E: planted process tree reads synthetic
+  `%USERPROFILE%\.aws\credentials` and makes outbound connection; beekeeper's
+  `exfil-signature-fusion` rule (SENTRY-005) fires on the Windows CI runner.
+- **SDEF-01** — `pollen-self` entries added to the unified `beekeeper-self` catalog;
+  `beekeeper selftest` passes with the extended catalog.
+
+### Contribution-back (SYNC-02 — deferred)
+
+No upstream PRs were opened against `perplexityai/bumblebee` in Milestone 2. The Windows
+patch set is prepared and preserved in commits `2c202ef..b906404`. Contribution-back is
+deferred to a future milestone per maintainer decision D-2. See `UPSTREAM.md §Contribution-back
+status` for the full rationale and re-submission guide.
+
+---
+
 ## v0.1.1-pollen.4 (2026-06-02) — Windows extension & MCP coverage
 
 > **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
