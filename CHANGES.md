@@ -6,6 +6,38 @@ This file documents every significant change Pollen makes from the pinned upstre
 
 ---
 
+## v0.2.0 (2026-06-11) — First standalone public release
+
+First public release of Pollen as a standalone, Windows-focused inventory
+scanner. It consolidates all the Windows-support work previously staged across
+the (never-tagged) `v0.1.1-pollen.2`–`.5` planning sections below into a single
+clean semver release, and drops the `-pollen.N` fork-suffix scheme.
+
+`schema_version` stays `0.1.0` (behavioral fork, not a protocol fork); the
+Linux/macOS differential (`TestDifferential`) remains byte-for-byte identical to
+upstream Bumblebee.
+
+### Included since v0.1.1-pollen.1
+
+- **Windows root resolver** (WRES-01/02): per-user + system package roots for
+  npm, pnpm, Yarn, Bun, PyPI, Go modules, RubyGems, Composer.
+- **Windows path representation** (WPATH-01/02): `filepath.FromSlash` project-path
+  joins; `endpoint.uid` empty on Windows (SID suppressed).
+- **Windows editor/browser/MCP coverage** (WEXT-01/02/03): VS Code / Cursor /
+  Windsurf / VSCodium extension roots; Chromium-family + Firefox browser-extension
+  roots; Claude Desktop / Cursor / Windsurf / Cline / Gemini MCP host-config roots.
+- **Test coverage hardening**: model 100%, Windows-compatible walk coverage,
+  scanner error classifiers, editorext 98.5%, cmd/pollen integration tests, plus
+  an `internal/coveragegate` presence gate with a reason-coded no-test allowlist.
+- **License / attribution**: Apache-2.0 `LICENSE`, `NOTICE` with an explicit
+  Apache-2.0 §4(b) modification statement, and `UPSTREAM.md` provenance.
+
+The original per-phase change log is retained below for provenance; those
+`pollen.N` versions were prepared during the upstream v1.1.0 milestone but never
+tagged.
+
+---
+
 ## v0.1.1-pollen.5 (2026-06-03) — Milestone close
 
 > **Status: prepared, not yet tagged.** The version bump and this delta are committed locally;
