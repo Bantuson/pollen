@@ -102,8 +102,12 @@ func TestHostFromExtRoot(t *testing.T) {
 		"/home/u/.vscodium/extensions":      "vscodium",
 		"/home/u/.vscode-oss/extensions":    "vscodium",
 		"/home/u/.vscode/extensions":        "vscode",
-		"C:\\Users\\u\\.windsurf\\extensions": "windsurf", // backslash path normalized via ToSlash
 	}
+	// NOTE: a backslash path (C:\...\.windsurf\...) is intentionally NOT asserted
+	// here. hostFromExtRoot relies on filepath.ToSlash, which only rewrites the
+	// HOST OS separator — so a backslash input is normalized on Windows but left
+	// as-is on Linux/macOS, making such a case OS-dependent rather than a portable
+	// assertion. The forward-slash cases above already cover every switch branch.
 	for root, want := range cases {
 		if got := hostFromExtRoot(root); got != want {
 			t.Errorf("hostFromExtRoot(%q) = %q, want %q", root, got, want)
