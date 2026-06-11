@@ -58,6 +58,14 @@ func TestRunScanFileOutput(t *testing.T) {
 	}
 }
 
+// TestRunSelftestVerbose covers the non-quiet "selftest OK" print branch (the
+// --quiet path is covered by selftest_test.go).
+func TestRunSelftestVerbose(t *testing.T) {
+	if code := runSelftest(nil); code != 0 {
+		t.Errorf("runSelftest (verbose) exit = %d, want 0", code)
+	}
+}
+
 func TestRunScanErrors(t *testing.T) {
 	// Unknown profile.
 	if code := runScan([]string{"--profile", "bogus", "--root", t.TempDir()}); code == 0 {
