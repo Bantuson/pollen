@@ -11,4 +11,11 @@ Pollen is not affiliated with, endorsed by, or supported by Perplexity AI Inc.
 For general-purpose supply-chain scanning on macOS and Linux, use upstream
 Bumblebee directly.
 
-Changes from upstream are documented in CHANGES.md.
+Modifications (Apache License 2.0, Section 4(b)): source files in this
+repository have been modified from the upstream Bumblebee v0.1.1 release
+(pinned commit c24089804ee66ece4bec6f14638cb98985389cdb, 2026-05-22). At a
+minimum the Go module path was rewritten from
+github.com/perplexityai/bumblebee to github.com/bantuson/pollen across the
+source tree; the substantive changes (Windows root resolution, Windows path
+representation, and Windows editor/browser/MCP-config coverage) are enumerated
+in CHANGES.md, and the upstream provenance and sync workflow are in UPSTREAM.md.
